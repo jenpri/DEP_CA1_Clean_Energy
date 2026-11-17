@@ -375,3 +375,133 @@ corrplot(
   tl.srt = 45,
   number.cex = 0.8
 )
+
+
+# 13. One-hot encoding
+
+
+# Convert the categorical country variable into binary dummy variables.
+# One-hot encoding is appropriate because countries are nominal categories
+# and do not have a natural numerical order.
+
+country_encoded <- model.matrix(
+  ~ country - 1,
+  data = energy_clean
+)
+
+# Check the dimensions of the encoded data
+dim(country_encoded)
+
+# Display the first rows and columns
+country_encoded[1:5, 1:10]
+
+
+# 14. Principal Component Analysis (PCA)
+
+
+# Select numerical variables for PCA
+pca_data <- energy_clean %>%
+  select(
+    electricity_carbon_intensity_gco2eq_per_kwh,
+    electricity_demand_per_capita_kwh,
+    fossil_fuels_electricity_share_pct,
+    hydro_electricity_share_pct,
+    renewables_electricity_share_pct,
+    solar_electricity_share_pct,
+    wind_electricity_share_pct
+  )
+
+# Apply PCA with standardisation
+pca_result <- prcomp(
+  pca_data,
+  center = TRUE,
+  scale. = TRUE
+)
+
+# Display PCA summary
+summary(pca_result)
+
+
+# 15. PCA loadings and interpretation
+
+
+# Display the contribution of each original variable
+# to the principal components
+round(pca_result$rotation, 3)
+
+# Calculate explained variance
+explained_variance <- (
+  pca_result$sdev^2 /
+    sum(pca_result$sdev^2)
+) * 100
+
+pca_variance <- data.frame(
+  Component = paste0(
+    "PC",
+    seq_along(explained_variance)
+  ),
+  Variance = explained_variance
+)
+
+ggplot(
+  pca_variance,
+  aes(
+    x = Component,
+    y = Variance,
+    group = 1
+  )
+) +
+  geom_col() +
+  geom_line() +
+  geom_point(size = 2.5) +
+  geom_text(
+    aes(
+      label = paste0(
+        round(Variance, 1),
+        "%"
+      )
+    ),
+    vjust = -0.5
+  ) +
+  labs(
+    title = "Most of the Variation Is Captured by the First Two Components",
+    subtitle = "PC1 and PC2 together explain 71.7% of the total variation",
+    x = "Principal Component",
+    y = "Variance Explained (%)"
+  ) +
+  theme_minimal(base_size = 13)
+
+
+# 16. PCA visualisation
+
+
+pca_scores <- data.frame(
+  PC1 = pca_result$x[, 1],
+  PC2 = pca_result$x[, 2],
+  country = energy_clean$country,
+  year = energy_clean$year,
+  renewable_share = energy_clean$renewables_electricity_share_pct
+)
+
+ggplot(
+  pca_scores,
+  aes(
+    x = PC1,
+    y = PC2,
+    colour = renewable_share
+  )
+) +
+  geom_point(
+    alpha = 0.6,
+    size = 2
+  ) +
+  scale_colour_viridis_c(
+    name = "Renewable\nElectricity (%)"
+  ) +
+  labs(
+    title = "Countries Differ Mainly by Their Electricity Mix",
+    subtitle = "PC1 and PC2 summarise 71.7% of the variation in seven energy indicators",
+    x = "PC1 – Fossil vs Renewable Electricity (52.5%)",
+    y = "PC2 – Renewable Source Mix (19.1%)"
+  ) +
+  theme_minimal(base_size = 13)
