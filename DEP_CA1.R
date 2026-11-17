@@ -71,8 +71,6 @@ length(unique(energy$country))
 
 sort(colSums(is.na(energy)), decreasing = TRUE)[1:20]
 
-
-
 # 5. Select relevant variables
 
 
@@ -90,3 +88,28 @@ energy_selected <- energy %>%
     solar_electricity_share_pct,
     wind_electricity_share_pct
   )
+
+# 6. Filter recent years and valid country codes
+
+
+energy_clean <- energy_selected %>%
+  filter(
+    year >= 2010,
+    nchar(iso_code) == 3
+  )
+dim(energy_clean)
+
+colSums(is.na(energy_clean))
+
+# 7. Check complete cases
+
+
+sum(complete.cases(energy_clean))
+
+dim(na.omit(energy_clean))
+
+energy_clean <- na.omit(energy_clean)
+
+dim(energy_clean)
+
+colSums(is.na(energy_clean))
