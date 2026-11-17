@@ -60,7 +60,9 @@ head(
   energy[, c("country", "year", "iso_code")],
   20
 )
+
 # Key dataset information
+
 dim(energy)
 
 range(energy$year, na.rm = TRUE)
@@ -68,3 +70,23 @@ range(energy$year, na.rm = TRUE)
 length(unique(energy$country))
 
 sort(colSums(is.na(energy)), decreasing = TRUE)[1:20]
+
+
+
+# 5. Select relevant variables
+
+
+energy_selected <- energy %>%
+  select(
+    country,
+    year,
+    iso_code,
+    population,
+    electricity_carbon_intensity_gco2eq_per_kwh,
+    electricity_demand_per_capita_kwh,
+    fossil_fuels_electricity_share_pct,
+    hydro_electricity_share_pct,
+    renewables_electricity_share_pct,
+    solar_electricity_share_pct,
+    wind_electricity_share_pct
+  )
