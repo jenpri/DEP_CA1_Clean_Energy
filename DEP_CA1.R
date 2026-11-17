@@ -187,3 +187,191 @@ energy_clean %>%
     electricity_demand_per_capita_kwh
   ) %>%
   head(20)
+# -------------------------
+# 11. Exploratory Data Analysis
+# Research Question 1
+
+
+ggplot(
+  energy_clean,
+  aes(
+    x = renewables_electricity_share_pct,
+    y = electricity_carbon_intensity_gco2eq_per_kwh
+  )
+) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Renewable Electricity Share vs Carbon Intensity",
+    x = "Renewable Electricity Share (%)",
+    y = "Carbon Intensity (gCO2eq/kWh)"
+  ) +
+  theme_minimal()
+cor(
+  energy_clean$renewables_electricity_share_pct,
+  energy_clean$electricity_carbon_intensity_gco2eq_per_kwh
+)
+# -------------------------
+# Research Question 2
+
+
+ggplot(
+  energy_clean,
+  aes(
+    x = fossil_fuels_electricity_share_pct,
+    y = electricity_carbon_intensity_gco2eq_per_kwh
+  )
+) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Fossil Fuel Electricity Share vs Carbon Intensity",
+    x = "Fossil Fuel Electricity Share (%)",
+    y = "Carbon Intensity (gCO2eq/kWh)"
+  ) +
+  theme_minimal()
+cor(
+  energy_clean$fossil_fuels_electricity_share_pct,
+  energy_clean$electricity_carbon_intensity_gco2eq_per_kwh
+)
+# -------------------------
+# Research Question 3
+# Distribution of renewable electricity
+
+
+ggplot(
+  energy_clean,
+  aes(x = renewables_electricity_share_pct)
+) +
+  geom_histogram(
+    bins = 30,
+    colour = "black",
+    fill = "lightblue"
+  ) +
+  labs(
+    title = "Distribution of Renewable Electricity Share",
+    x = "Renewable Electricity Share (%)",
+    y = "Frequency"
+  ) +
+  theme_minimal()
+summary(energy_clean$renewables_electricity_share_pct)
+
+# -------------------------
+# Research Question 4
+# Compare renewable sources
+
+
+renewable_sources <- energy_clean %>%
+  select(
+    hydro_electricity_share_pct,
+    solar_electricity_share_pct,
+    wind_electricity_share_pct
+  ) %>%
+  pivot_longer(
+    cols = everything(),
+    names_to = "source",
+    values_to = "share"
+  )
+
+ggplot(
+  renewable_sources,
+  aes(x = source, y = share)
+) +
+  geom_boxplot() +
+  labs(
+    title = "Distribution of Renewable Electricity Sources",
+    x = "Renewable Source",
+    y = "Electricity Share (%)"
+  ) +
+  theme_minimal()
+
+renewable_sources %>%
+  group_by(source) %>%
+  summarise(
+    mean_share = mean(share),
+    median_share = median(share),
+    max_share = max(share)
+  )
+
+# -------------------------
+# Research Question 5
+# Renewable electricity trend over time
+
+
+renewable_trend <- energy_clean %>%
+  group_by(year) %>%
+  summarise(
+    mean_renewable_share = mean(
+      renewables_electricity_share_pct
+    )
+  )
+
+ggplot(
+  renewable_trend,
+  aes(
+    x = year,
+    y = mean_renewable_share
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point() +
+  labs(
+    title = "Average Renewable Electricity Share Over Time",
+    x = "Year",
+    y = "Average Renewable Electricity Share (%)"
+  ) +
+  theme_minimal()
+
+renewable_trend
+
+
+# 12. Correlation analysis
+
+correlation_data <- energy_clean %>%
+  select(
+    electricity_carbon_intensity_gco2eq_per_kwh,
+    electricity_demand_per_capita_kwh,
+    fossil_fuels_electricity_share_pct,
+    hydro_electricity_share_pct,
+    renewables_electricity_share_pct,
+    solar_electricity_share_pct,
+    wind_electricity_share_pct
+  )
+
+correlation_matrix <- cor(correlation_data)
+
+round(correlation_matrix, 2)
+
+
+library(corrplot)
+
+# Short labels for correlation plot
+colnames(correlation_matrix) <- c(
+  "Carbon",
+  "Demand",
+  "Fossil",
+  "Hydro",
+  "Renewables",
+  "Solar",
+  "Wind"
+)
+
+rownames(correlation_matrix) <- c(
+  "Carbon",
+  "Demand",
+  "Fossil",
+  "Hydro",
+  "Renewables",
+  "Solar",
+  "Wind"
+)
+
+corrplot(
+  correlation_matrix,
+  method = "color",
+  type = "upper",
+  addCoef.col = "black",
+  tl.col = "black",
+  tl.srt = 45,
+  number.cex = 0.8
+)
